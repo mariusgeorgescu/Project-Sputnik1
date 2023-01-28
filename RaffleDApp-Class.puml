@@ -1,0 +1,59 @@
+@startuml
+
+class Raffle {
+    +id :: Int
+    +status :: RaffleState
+    +organizer :: User
+    +asset :: Value
+    +minimumAmount :: Value
+    +ticketValue :: Value
+    +commitDeadline :: Date
+    +revealDeadline :: Date
+    +ticketsSold :: [Ticket]
+    +ticketsActive :: [Ticket]
+    +secretsReceived :: [TicketSecret]
+    +buyTickets ( User, no, [ticketSecretHash])
+    +newSecretHashes (User, [(secretID, ticketSecretHash)] )
+    +revealSecrets (User, [(secetID, secret)] )
+    +cancel ( User )
+    +redeem ( User )
+
+}
+
+User <|-- Organizer
+User <|-- Participant
+
+class User {
+    +publicKeyHash : PKH :: Hash
+}
+
+class Organizer {
+    +raffles : [raffleID] :: [Int]
+}
+
+class Participant {
+    +tickets :: [ Ticket ]
+    +secrets :: [ TicketSecret ]
+ }
+
+class Ticket {
+    +ticketID :: Int
+    +ticketSecretHash :: Hash
+    +owner :: User
+}
+
+class TicketSecret {
+    +secretID :: Int
+    +secretValue :: Int
+    }
+
+TicketSecret "1" -- "1"  Ticket : is for >
+
+Organizer "1" *-- "1..*"  Raffle : initiate >
+Raffle "1" *-- "0..1"  Participant : is won by >
+
+Participant "1" *-- "1..*" Ticket : buys >
+Raffle "1" *-- "0..*" Ticket : sell >
+
+
+@enduml

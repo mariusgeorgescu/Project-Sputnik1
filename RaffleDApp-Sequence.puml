@@ -1,0 +1,46 @@
+@startuml
+
+
+actor Organizer as O
+actor Participant as P
+
+entity Raffle as R
+
+
+O -> R ** : initiate raffle (asset, commitDate, revealDate, minAmnt, ticketVal)
+opt cancel
+    O -> R !! : Cancel Raffle
+end
+
+loop while commitDate not reached
+    P -> R : buyTickets (User, no, [ticketSecretHash] )
+    R -> R : update
+    R --> P : ticketID
+end
+
+alt Min amoun reached
+    loop while revealDate not reached
+        P -> R : revealSecrets ( User, [(secetID, secret)] )
+        R -> R: validate \n& update state
+        R --> P : ok
+    end
+    alt All secrets received
+        P -> R  : Redeem
+        R -> R: validate \n& update state
+        R --> P : ok
+
+    else failure : Not all secrets received
+        ref over P, R : re-commit process
+    end
+else failure : Min amount not reached
+    alt Canceled by Organizer
+        O -> R !! : Cancel Raffle
+    else Canceled by any Participant
+        P-> R !! : Cancel Raffle
+    end
+end
+
+
+
+
+

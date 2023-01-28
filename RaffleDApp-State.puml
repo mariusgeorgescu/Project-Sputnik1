@@ -1,0 +1,46 @@
+@startuml
+
+hide empty description
+
+[*] --> NEW : Initiate Raffle
+NEW: Asset
+NEW --> [*] : Canceled By Organizer
+NEW --> EXPIRED : Commit deadline\n reached
+EXPIRED --> [*] : Closed by Organizer \nor by a Participant
+
+
+NEW --> COMMIT : buyTickets (User, no, [ticketSecretHash] )
+
+state COMMIT {
+    state "Accumulate Amount" as acc
+    acc : ticketsSold :: [Ticket]
+    acc --> acc : buyTickets \n(User, no, [ticketSecretHash])
+}
+state C <<choice>>
+COMMIT --> C : Commit deadline\n reached
+C --> EXPIRED : Minimum amount \nNOT reached
+C --> REVEAL : Minimum amount \nreached
+state REVEAL {
+    state "Collect secrets" as rv
+    rv: secretsReceived :: [TicketSecret]
+    rv --> rv : revealSecrets \n( User, [(secetID, secret)] )
+}
+
+REVEAL --> REDEEMABLE :All secrets received
+
+state R <<choice>>
+REVEAL --> R : Reveal deadline reached
+R --> RECOMMIT : Not all secrets received
+R --> REDEEMABLE : All secrets received
+
+
+state RECOMMIT {
+    state "Get new secret hashes \nfrom valid participants" as rc
+    rc : ticketsActive :: [Ticket]
+    rc --> rc : newSecretHashes \n(User, [(secretID, ticketSecretHash)] )
+}
+RECOMMIT --> REVEAL : Re-commit deadline\n reached
+
+REDEEMABLE --> [*] : Redeemed by winner
+
+@enduml
